@@ -1,6 +1,6 @@
 import React from 'react';
-import Game from '../../controllers/Game';
+import { GameLayoutContainer } from '../containers';
 
 export default () => {
-    return <Game />;
+    return <GameLayoutContainer />;
 };
