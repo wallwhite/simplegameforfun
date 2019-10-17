@@ -1,0 +1,14 @@
+{ "columns":10,
+ "image":"assets/images/bgs/bg5_g.png",
+ "imageheight":720,
+ "imagewidth":1280,
+ "margin":0,
+ "name":"BGS",
+ "spacing":0,
+ "tilecount":50,
+ "tiledversion":"1.2.5",
+ "tileheight":128,
+ "tilewidth":128,
+ "type":"tileset",
+ "version":1.2
+}

@@ -1,5 +1,6 @@
 /* eslint-disable new-cap */
 import * as PIXI from 'pixi.js';
+import { PixiMapBuilder } from '.';
 
 class PixiLoader {
     constructor(app) {
@@ -9,30 +10,14 @@ class PixiLoader {
 
         this.done = false;
 
-        const { loader } = app;
+        this.builder = new PixiMapBuilder(this.app);
 
-        loader.add('gameTileset', '/data/gameTileset.json');
+        this.builder.addMap('gameMap', '/data/baseMap.json');
 
-        loader.load((ld, resources) => {
-            const {
-                gameTileset: {
-                    data: { tiles },
-                },
-            } = resources;
+        this.builder.getLoaderData();
 
-            const block = new PIXI.Sprite.from(tiles[0].image);
-
-            block.x = this.app.renderer.width / 2;
-            block.y = this.app.renderer.height / 2;
-
-            block.anchor.x = 0.5;
-            block.anchor.y = 0.5;
-            this.app.stage.addChild(block);
-            // console.log(ld, resources);
-        });
+        this.builder.buildMap('gameMap');
     }
-
-    create = () => {};
 }
 
 export default PixiLoader;
