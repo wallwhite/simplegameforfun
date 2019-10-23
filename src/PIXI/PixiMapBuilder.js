@@ -2,7 +2,8 @@
 
 import * as PIXI from 'pixi.js';
 import _ from 'lodash';
-import { dataPath } from '../constants';
+import { dataPath, SCALE_VALUE } from '../constants';
+import { Keyboard } from '.';
 
 class PixiMapBuilder {
     loader: any;
@@ -13,11 +14,14 @@ class PixiMapBuilder {
 
     layers: Array<any>;
 
+    kb: Keyboard;
+
     constructor(app: any) {
         this.app = app;
         this.loader = app.loader;
         this.mapNames = [];
         this.layers = [];
+        this.kb = new Keyboard();
     }
 
     addMap = (name: string, url: string) => {
@@ -51,52 +55,61 @@ class PixiMapBuilder {
                 data: { layers },
             } = resources[name];
 
+            this.kb.watch(window);
             const currentTiles = [];
 
-            setTimeout(() => {
-                layers.forEach(({ properties, data: mapData, width: mapWidth }) => {
-                    const { value: titleSourceName } = _.find(properties, { name: 'titleSourceName' });
-                    const layerInstance = new PIXI.Container();
+            layers.forEach(({ properties, data: mapData, width: mapWidth }) => {
+                const { value: titleSourceName } = _.find(properties, { name: 'titleSourceName' });
+                const layerInstance = new PIXI.Container();
 
-                    const { data } = resources[titleSourceName];
+                const { data } = resources[titleSourceName];
 
-                    if (_.has(data, 'image')) {
-                        const { tileheight, tilewidth, imageheight, imagewidth, image } = data;
+                if (_.has(data, 'image')) {
+                    const { tileheight, tilewidth, imageheight, imagewidth, image } = data;
 
-                        const xCount = Math.floor(imagewidth / tilewidth);
-                        const yCount = Math.floor(imageheight / tileheight);
+                    const xCount = Math.floor(imagewidth / tilewidth);
+                    const yCount = Math.floor(imageheight / tileheight);
 
-                        for (let y = 0; y < yCount; y += 1) {
-                            for (let x = 0; x < xCount; x += 1) {
-                                const textureX = 0;
-                                const textureY = 0;
+                    for (let y = 0; y < yCount; y += 1) {
+                        for (let x = 0; x < xCount; x += 1) {
+                            const textureX = 0;
+                            const textureY = 0;
 
-                                const texture = PIXI.Texture.from(image);
-                                const textureSprite = new PIXI.Texture(
-                                    texture,
-                                    new PIXI.Rectangle(textureX, textureY, tilewidth, tileheight),
-                                );
-
-                                currentTiles.push(textureSprite);
-                            }
-                        }
-                    } else {
-                        data.tiles.forEach(({ image, imagewidth, imageheight }) => {
                             const texture = PIXI.Texture.from(image);
                             const textureSprite = new PIXI.Texture(
                                 texture,
-                                new PIXI.Rectangle(0, 0, imagewidth, imageheight),
+                                new PIXI.Rectangle(textureX, textureY, tilewidth, tileheight),
                             );
 
                             currentTiles.push(textureSprite);
-                        });
+                        }
                     }
+                } else {
+                    data.tiles.forEach(({ image, imagewidth, imageheight }) => {
+                        const texture = PIXI.Texture.from(image);
+                        const textureSprite = new PIXI.Texture(
+                            texture,
+                            new PIXI.Rectangle(0, 0, imagewidth, imageheight),
+                        );
 
-                    this.setTilesFromSprite(mapData, currentTiles, layerInstance, { mapWidth });
+                        currentTiles.push(textureSprite);
+                    });
+                }
 
-                    this.app.stage.addChild(layerInstance);
-                });
-            }, 1000); // TODO: this callback sunction shoult be async, when it will be done remove timeout
+                this.setTilesFromSprite(mapData, currentTiles, layerInstance, { mapWidth });
+                layerInstance.scale.x = SCALE_VALUE(128) / 10;
+                layerInstance.scale.y = SCALE_VALUE(128) / 10;
+                this.app.stage.addChild(layerInstance);
+            });
+
+            this.app.ticker.add(() => {
+                if (this.kb.pressed.ArrowRight) {
+                    this.app.stage.x = this.app.stage.x - 10;
+                }
+                if (this.kb.pressed.ArrowLeft) {
+                    this.app.stage.x = this.app.stage.x + 10;
+                }
+            });
         });
 
     setTilesFromSprite = (
