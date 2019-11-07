@@ -3,7 +3,6 @@
 import * as PIXI from 'pixi.js';
 import _ from 'lodash';
 import { dataPath, SCALE_VALUE } from '../constants';
-import { Keyboard } from '.';
 
 class PixiMapBuilder {
     loader: any;
@@ -14,15 +13,26 @@ class PixiMapBuilder {
 
     layers: Array<any>;
 
-    kb: Keyboard;
+    scaleValue: number;
 
     constructor(app: any) {
         this.app = app;
         this.loader = app.loader;
         this.mapNames = [];
         this.layers = [];
-        this.kb = new Keyboard();
+        this.scaleValue = SCALE_VALUE(128) / 10;
+
+        window.addEventListener('resize', this.scaleStageOnResize, 200);
     }
+
+    scaleStageOnResize = _.throttle(() => {
+        this.app.stage.children.forEach(layout => {
+            // eslint-disable-next-line no-param-reassign
+            layout.scale.x = SCALE_VALUE(128) / 10;
+            // eslint-disable-next-line no-param-reassign
+            layout.scale.y = SCALE_VALUE(128) / 10;
+        });
+    });
 
     addMap = (name: string, url: string) => {
         this.mapNames.push(name);
@@ -55,7 +65,6 @@ class PixiMapBuilder {
                 data: { layers },
             } = resources[name];
 
-            this.kb.watch(window);
             const currentTiles = [];
 
             layers.forEach(({ properties, data: mapData, width: mapWidth }) => {
@@ -97,18 +106,9 @@ class PixiMapBuilder {
                 }
 
                 this.setTilesFromSprite(mapData, currentTiles, layerInstance, { mapWidth });
-                layerInstance.scale.x = SCALE_VALUE(128) / 10;
-                layerInstance.scale.y = SCALE_VALUE(128) / 10;
+                layerInstance.scale.x = this.scaleValue;
+                layerInstance.scale.y = this.scaleValue;
                 this.app.stage.addChild(layerInstance);
-            });
-
-            this.app.ticker.add(() => {
-                if (this.kb.pressed.ArrowRight) {
-                    this.app.stage.x = this.app.stage.x - 10;
-                }
-                if (this.kb.pressed.ArrowLeft) {
-                    this.app.stage.x = this.app.stage.x + 10;
-                }
             });
         });
 
