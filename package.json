@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@babel/polyfill": "^7.4.4",
-    "@babel/runtime-corejs2": "^7.4.4",
+    "@babel/runtime-corejs2": "^7.26.10",
     "@inlet/react-pixi": "^1.1.2",
     "classnames": "^2.2.6",
     "history": "^4.10.1",
